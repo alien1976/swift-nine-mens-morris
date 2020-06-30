@@ -7,7 +7,7 @@ protocol Controller{
     var Board: GameBoard {get}
 }
 
-class GameController {
+public class GameController {
     var Player1: Player = Player("Player1",Color.filled)
     var Player2: Player = Player("Player2",Color.empty)
     var Board: GameBoard = GameBoard()
