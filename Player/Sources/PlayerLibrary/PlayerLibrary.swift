@@ -24,7 +24,7 @@ public struct PlayerChip {
         self.position = position
     }
 
-    init(position: String, color: Color){
+    public init(_ position: String,_ color: Color){
         self.position = position
         self.color = color
     }
@@ -37,19 +37,21 @@ public struct PlayerChip {
 protocol PlayerData {
     var chips: [PlayerChip] {get set}
     var color: Color {get set}
+    var playerChipsOnBoard: Int {get set}
     var playerName:String {get set}
 }
 
 public class Player: PlayerData {
     var chips: [PlayerChip] = []
-    var color: Color = Color.none
+    var playerChipsOnBoard = 0
+    public var color: Color = Color.none
     var playerName:String
 
     init(playerName: String){
         self.playerName = playerName
     }
 
-    init(playerName: String, color: Color){
+    public init(_ playerName: String,_ color: Color){
         self.playerName = playerName
     }
 
@@ -74,6 +76,14 @@ public class Player: PlayerData {
         }
 
         self.chips.append(chip)
+    }
+
+    public func increaseChipsCount(){
+        self.playerChipsOnBoard += 1
+    }
+
+    public func decreaseChipsCount(){
+        self.playerChipsOnBoard -= 1
     }
 
     public func removeChip(position: String){
