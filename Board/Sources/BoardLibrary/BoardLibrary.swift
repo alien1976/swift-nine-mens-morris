@@ -80,29 +80,30 @@ public class GameBoard: Board {
     ]
 
     public let tripplesX = [["A1","D1","G1"], ["B2", "D2", "F2"], ["C3", "D3", "F3"],  ["A4","B4","C4"],
-                     ["E4","F4","G4"], ["C5","D5","E5"], ["B6","D6","F6"], ["A7", "D7","G7"]]
+                            ["E4","F4","G4"], ["C5","D5","E5"], ["B6","D6","F6"], ["A7", "D7","G7"]]
 
     public let tripplesY = [["A1","A4","A7"], ["B2","B4","B6"],["C3","C4","C5"],["D1","D2","D3"],
-                     ["D5","D6","D7"], ["E3","E4","E5"], ["F2","F4","F6"],["G1","G4","G7"]]
+                            ["D5","D6","D7"], ["E3","E4","E5"], ["F2","F4","F6"],["G1","G4","G7"]]
 
     public init(){
 
     }
 
     public func printBoard() {
-        print("\(edges["A1"]!.edgeToString())---------\(edges["D1"]!.edgeToString())---------\(edges["G1"]!.edgeToString())")
-        print("|         |         |")
-        print("|  \(edges["B2"]!.edgeToString())------\(edges["D2"]!.edgeToString())------\(edges["F2"]!.edgeToString())  |")
-        print("|  |      |      |  |")
-        print("|  |   \(edges["C3"]!.edgeToString())--\(edges["D3"]!.edgeToString())--\(edges["F3"]!.edgeToString())   |  |")
-        print("|  |   |     |   |  |")
-        print("\(edges["A4"]!.edgeToString())--\(edges["B4"]!.edgeToString())---\(edges["C4"]!.edgeToString())     \(edges["E4"]!.edgeToString())---\(edges["F4"]!.edgeToString())--\(edges["G4"]!.edgeToString())")
-        print("|  |   |     |   |  |")
-        print("|  |   \(edges["C5"]!.edgeToString())--\(edges["D5"]!.edgeToString())--\(edges["E5"]!.edgeToString())   |  |")
-        print("|  |      |      |  |")
-        print("|  \(edges["B6"]!.edgeToString())------\(edges["D6"]!.edgeToString())------\(edges["F6"]!.edgeToString())  |")
-        print("|         |         |")
-        print("\(edges["A7"]!.edgeToString())---------\(edges["D7"]!.edgeToString())---------\(edges["G7"]!.edgeToString())")
+        print("     A   B   C   D   E   F   G\n")
+        print("1    \(edges["A1"]!.edgeToString())-----------\(edges["D1"]!.edgeToString())-----------\(edges["G1"]!.edgeToString())")
+        print("     |           |           |")
+        print("2    |   \(edges["B2"]!.edgeToString())-------\(edges["D2"]!.edgeToString())-------\(edges["F2"]!.edgeToString())   |")
+        print("     |   |       |       |   |")
+        print("3    |   |   \(edges["C3"]!.edgeToString())---\(edges["D3"]!.edgeToString())---\(edges["F3"]!.edgeToString())   |   |")
+        print("     |   |   |       |   |   |")
+        print("4    \(edges["A4"]!.edgeToString())---\(edges["B4"]!.edgeToString())---\(edges["C4"]!.edgeToString())       \(edges["E4"]!.edgeToString())---\(edges["F4"]!.edgeToString())---\(edges["G4"]!.edgeToString())")
+        print("     |   |   |       |   |   |")
+        print("5    |   |   \(edges["C5"]!.edgeToString())---\(edges["D5"]!.edgeToString())---\(edges["E5"]!.edgeToString())   |   |")
+        print("     |   |       |       |   |")
+        print("6    |   \(edges["B6"]!.edgeToString())-------\(edges["D6"]!.edgeToString())-------\(edges["F6"]!.edgeToString())   |")
+        print("     |           |           |")
+        print("7    \(edges["A7"]!.edgeToString())-----------\(edges["D7"]!.edgeToString())-----------\(edges["G7"]!.edgeToString())")
     }
 
     public func isFieldEmpty(position:String) -> Bool{
@@ -111,5 +112,13 @@ public class GameBoard: Board {
         }
 
         return false
+    }
+
+    public func isValid(position: String)->Bool{
+        guard let edge = self.edges[position] else {
+            return false
+        }
+
+        return true
     }
 }

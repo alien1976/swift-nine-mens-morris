@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "GameApp",
     products: [
-        .executable(name: "GameApp", targets: ["GameApp"]),
+        // .executable(name: "GameApp", targets: ["GameApp"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.

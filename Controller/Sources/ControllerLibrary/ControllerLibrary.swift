@@ -11,7 +11,7 @@ public class GameController {
     var Player1: Player = Player("Player1",Color.filled)
     var Player2: Player = Player("Player2",Color.empty)
     var Board: GameBoard = GameBoard()
-    var activePlayer: Player
+    public var activePlayer: Player
     var notActivePlayer: Player
 
     public init(){
@@ -19,24 +19,26 @@ public class GameController {
         self.notActivePlayer = self.Player2
     }
 
-    func changeActivePlayer(){
+    public func changeActivePlayer(){
         let tempPlayer = activePlayer;
         self.activePlayer = self.notActivePlayer
         self.notActivePlayer = tempPlayer
     }
 
-    func setChipOn(position: String){
+    public func setChipOn(position: String)->Bool{
         if !self.Board.isFieldEmpty(position: position) {
             print("Warning: This position is not empty! Please try with another one!")
-            return
+            return false
         }
 
         let newChip = PlayerChip(position, self.activePlayer.color)
-
         if let edge = self.Board.edges[position] {
             edge.setPlayer(chip: newChip)
             self.activePlayer.increaseChipsCount()
+            return true
         }
+
+        return false
     }
 
     func moveChip(from:String, to: String, fly:Bool = false){
@@ -69,27 +71,28 @@ public class GameController {
         edge.removePlayer(chip: edgeChip)
     }
 
-    func removeOponentChipOn(position:String){
+    public func removeOponentChipOn(position:String)->Bool{
         guard let edge = self.Board.edges[position] else {
             print("Warning: Oponent chip position \(position) is invalid!")
-            return
+            return false
         }
 
         guard let edgeChip = edge.chip else {
             print("Warning: There is no on position - \(position)!")
-            return
+            return false
         }
 
         if (edgeChip.color == activePlayer.color) {
             print("Warning: You can't remove your own chip!")
-            return
+            return false
         }
 
         edge.removePlayer(chip: edgeChip)
         self.notActivePlayer.decreaseChipsCount()
+        return true;
     }
 
-    func isMillFormed() -> Bool{
+    public func isMillFormed() -> Bool{
         if isMillIn(tripples: self.Board.tripplesX) {
             return true
         }
@@ -127,5 +130,24 @@ public class GameController {
         }
 
         return true
+    }
+
+    public func printBoard(){
+        self.Board.printBoard()
+    }
+
+    public func getPlayerChipsCount(_ playerName:String)->Int{
+        switch playerName{
+        case self.Player1.playerName:
+            return self.Player1.playerChipsOnBoard
+        case self.Player2.playerName:
+            return self.Player2.playerChipsOnBoard
+        default:
+            return 0
+        }
+    }
+
+    public func isValid(position: String)->Bool{
+        return self.Board.isValid(position:position)
     }
 }

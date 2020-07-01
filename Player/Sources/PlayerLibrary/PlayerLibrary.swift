@@ -43,9 +43,9 @@ protocol PlayerData {
 
 public class Player: PlayerData {
     var chips: [PlayerChip] = []
-    var playerChipsOnBoard = 0
+    public var playerChipsOnBoard = 0
     public var color: Color = Color.none
-    var playerName:String
+    public var playerName:String
 
     init(playerName: String){
         self.playerName = playerName
@@ -53,6 +53,7 @@ public class Player: PlayerData {
 
     public init(_ playerName: String,_ color: Color){
         self.playerName = playerName
+        self.color = color
     }
 
     public func setPlayerColor(color:String){
