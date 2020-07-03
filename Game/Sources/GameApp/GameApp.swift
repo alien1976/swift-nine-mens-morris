@@ -39,16 +39,15 @@ class Game{
 
     var gamePhase = GamePhase.ADD
     var millFormed = false
-
+    var gamePaused = true
     let greetingString = "Hello to nine-mens-morris game!"
 
     func start(){
         print("\(self.greetingString)\n\n\(self.helpString)")
-        commandsReader()
+        commandsReader(gamePhase: firstGamePhaseCommands)
     }
 
-    func commandsReader(){
-        print("> ")
+    func commandsReader(gamePhase: (_ command:String)-> Bool){
         while let input = readLine() {
             guard input != "exit" else {
                 print("Game has ended")
@@ -56,49 +55,75 @@ class Game{
             }
 
             guard input != "help" else {
+                self.gamePaused = true
                 clearAndPrintOutput {
-                    print(self.helpString)
+                    self.helpString
                 }
                 continue
             }
 
-            if self.millFormed {
-                if !self.gameController.removeOponentChipOn(position: input){
-                    clearAndPrintOutput{
-                        print("You've set three chips in one line. Remove oponent chip! ")
-                    }
-                    continue
-                }else{
-                    self.millFormed = false
-                    continue
-                }
-            }
-
-            if !self.millFormed && !parse(command:input){
-                clearAndPrintOutput{
-                    // print("Invalid input. Please type \"help\" for more info about the input type for each game phases.")
-                }
-                continue
-            } 
-
-            if self.gameController.isMillFormed(){
-                self.millFormed = true
-                clearAndPrintOutput{
-                    print("You've set three chips in one line. Remove oponent chip! ")
-                }
-                continue
-            }
-
-            self.gameController.changeActivePlayer()
-            clearAndPrintOutput{
-                switch self.gamePhase{
-                case .ADD:
-                    print(self.gameController.activePlayer.playerName + ", Set chip:")
-                case .MOVE:
-                    return
-                }
+            if !gamePhase(input) {
+                return
             }
         }
+    }
+
+    func firstGamePhaseCommands(command:String) -> Bool{
+        if self.gamePaused && command == "" {
+            self.gamePaused = false
+            return finishPhaseTurn(shouldChangePlayer: false){
+                return self.gameController.activePlayer.playerName + ", Set chip:"
+            }
+        }
+
+        if self.millFormed && self.gameController.removeOponentChipOn(position: command){
+            self.millFormed = false
+            return finishPhaseTurn{
+                self.gameController.activePlayer.playerName + ", Set chip:"
+            }
+        } else if self.millFormed {
+            return finishPhaseTurn(shouldChangePlayer: false){
+                "You've set three chips in one line. Remove oponent chip! "
+            }
+        }
+
+        //will set chip on position with parsing and validating the position
+        if !parse(command:command){
+            return finishPhaseTurn(shouldChangePlayer: false){
+                "Unable to set chip on \(command)\n"+self.gameController.activePlayer.playerName + ", Set chip:"
+            }
+        }
+
+        self.gameController.decreaseActivePlayerChips()
+
+        if self.gameController.isMillFormed(position: command, color: self.gameController.activePlayer.color){
+            self.millFormed = true
+
+            return finishPhaseTurn(shouldChangePlayer: false){
+                "You've set three chips in one line. Remove oponent chip: "
+            }
+        }
+
+        return finishPhaseTurn {
+            self.gameController.activePlayer.playerName + ", Set chip:"
+        }
+    }
+
+    func finishPhaseTurn(shouldChangePlayer:Bool = true, infoMessage: () -> String = {""}) ->Bool{
+        if shouldChangePlayer {self.gameController.changeActivePlayer()}
+
+        if self.gameController.areAllChipsSet() {
+            clearAndPrintOutput{
+                infoMessage()
+            }
+            return false
+        }
+
+        clearAndPrintOutput{
+            infoMessage()
+        }
+
+        return true
     }
 
     func parse(command: String)->Bool{
@@ -124,15 +149,14 @@ class Game{
         return true
     }
 
-    func clearAndPrintOutput(additionalOutput:()->Void = {}){
+    func clearAndPrintOutput(additionalOutput:()->String = {""}){
         system("clear")
         self.gameController.printBoard()
         print("""
             \nGame info: Phase 1 (add chips on the board).
             Player1 chips on board: \(self.gameController.getPlayerChipsCount("Player1"))
             Player2 chips on board: \(self.gameController.getPlayerChipsCount("Player2"))
+            \(additionalOutput())
             """)
-        additionalOutput();
-        print("> ")
     }
 }
