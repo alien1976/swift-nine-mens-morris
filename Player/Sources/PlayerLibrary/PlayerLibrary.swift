@@ -17,7 +17,7 @@ public enum Color: String {
 }
 
 public struct PlayerChip {
-    var position: String
+    public var position: String
     public var color: Color = Color.none
 
     init(position: String){
@@ -42,10 +42,11 @@ protocol PlayerData {
 }
 
 public class Player: PlayerData {
-    var chips: [PlayerChip] = []
+    public var chips: [PlayerChip] = []
     public var playerChipsOnBoard = 0
     public var color: Color = Color.none
     public var playerName:String
+    public var startGameChips = 9
 
     init(playerName: String){
         self.playerName = playerName
@@ -77,6 +78,7 @@ public class Player: PlayerData {
         }
 
         self.chips.append(chip)
+        increaseChipsCount()
     }
 
     public func increaseChipsCount(){
@@ -94,5 +96,15 @@ public class Player: PlayerData {
         }
 
         self.chips.remove(at: chipIndex)
+        decreaseChipsCount()
+    }
+
+    public func moveChip(from: String, to: String){
+        guard let chipIndex = (self.chips.firstIndex{currentChip in currentChip.position == from}) else {
+            print("Warning: Chip with position \(from) does not exists in \(self.playerName)'s chips!")
+            return
+        }
+
+        self.chips[chipIndex].position = to
     }
 }
