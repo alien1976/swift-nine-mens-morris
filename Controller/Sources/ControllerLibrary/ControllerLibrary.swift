@@ -41,35 +41,42 @@ public class GameController {
         return false
     }
 
-    func moveChip(from:String, to: String, fly:Bool = false){
+    public func moveChip(from:String, to: String, fly:Bool = false)->Bool{
         guard let edge = self.Board.edges[from] else {
             print("Warning: From position \(from) is invalid!")
-            return
+            return false
         }
 
         guard let edgeChip = edge.chip else {
             print("Warning: There is no chip for moving on position - \(from)!")
-            return
+            return false
+        }
+
+        if edgeChip.color != self.activePlayer.color {
+            print("Warning: You can't move chip that is not yours!")
+            return false
         }
 
         guard let destEdge = self.Board.edges[to] else {
             print("Warning: To position \(from) is invalid!")
-            return
+            return false
         }
 
-        if !fly && !destEdge.neighbours.contains(to){
-            print("Warning: From position \(from) does not have destination position as a neighbour!")
-            return
+        if !fly && !edge.neighbours.contains(to){
+            print("Warning: From position \(from) does not have destination position \(to) as a neighbour!")
+            return false
         }
 
         if !destEdge.isEmpty {
-            print("Warning: To position \(from) is not empty!")
-            return
+            print("Warning: To position \(to) is not empty!")
+            return false
         }
 
         destEdge.setPlayer(chip: edgeChip)
         edge.removePlayer(chip: edgeChip)
         self.activePlayer.moveChip(from: from, to: to)
+
+        return true
     }
 
     public func removeOponentChipOn(position:String)->Bool{
@@ -205,5 +212,36 @@ public class GameController {
 
     public func areAllChipsSet() -> Bool {
         return self.Player1.startGameChips <= 0 && self.Player2.startGameChips <= 0
+    }
+
+    func movePositionsAreAvailable(player: Player) -> Bool{
+        for chip in player.chips {
+            guard let edge = self.Board.edges[chip.position] else {
+                return false
+            }
+
+            for neighbour in edge.neighbours{
+                guard let neighbourEdge = self.Board.edges[neighbour] else {
+                    continue
+                }
+
+                if neighbourEdge.isEmpty {return true}
+            }
+        }
+
+        return false
+    }
+
+    public func isGameLostFrom(player: Player)->Bool{
+        if player.playerChipsOnBoard < 3 {return true}
+        if !movePositionsAreAvailable(player: player) {return true}
+
+        return false
+    }
+
+    public func isGameEqual()->Bool{
+        if !movePositionsAreAvailable(player: self.activePlayer) && !movePositionsAreAvailable(player: self.notActivePlayer) {return true}
+
+        return false
     }
 }
