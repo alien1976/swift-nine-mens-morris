@@ -2,24 +2,24 @@ import PlayerLibrary
 
 protocol Edge {
     var position: String {get set}
-    var neighbours: [String] {get set}
+    var neighbors: [String] {get set}
     var isEmpty: Bool {get set}
     var chip: PlayerChip? {get set}
 
     func edgeToString() -> String
     func setPlayer(chip:PlayerChip) -> Void
-    func removePlayer(chip:PlayerChip) -> Void
+    func removePlayer() -> Void
 }
 
 public class BoardEdge: Edge {
-    public var neighbours: [String] = []
+    public var neighbors: [String] = []
     public var position: String
     public var edgeLineNeighbours: [[String]] = []
     public var isEmpty = true
     public var chip: PlayerChip?
 
-    public init(_ position: String,_ neighbours: [String], _ lines: [[String]]){
-        self.neighbours = neighbours
+    public init(_ position: String,_ neighbors: [String], _ lines: [[String]]){
+        self.neighbors = neighbors
         self.position = position
         self.edgeLineNeighbours = lines
     }
@@ -33,7 +33,7 @@ public class BoardEdge: Edge {
         self.isEmpty = false
     }
 
-    public func removePlayer(chip:PlayerChip){
+    public func removePlayer(){
         self.chip = nil
         self.isEmpty = true
     }
@@ -52,7 +52,7 @@ protocol Board {
 }
 
 public class GameBoard: Board {
-    // each edge has a neighbours. In this array they are mapped as edge index -> neighbours
+    // each edge has a neighbors. In this array they are mapped as edge index -> neighbors
     // edge with index 0 will be the top right corner, edge with index one will be the second edge on the first row, etc.
     public let edges:[String:BoardEdge] = [
         "A1": BoardEdge("A1", ["D1", "A4"], [["D1","G1"], ["A4","A7"]]),            //0
@@ -62,7 +62,7 @@ public class GameBoard: Board {
         "D2": BoardEdge("D2", ["D1", "B2", "F2", "D3"], [["B2", "F2"],["D1","D3"]]),      //4
         "F2": BoardEdge("F2", ["D2", "F4"], [["B2", "D2"],["F4","F6"]]),           //5
         "C3": BoardEdge("C3", ["D3", "C4"], [[ "D3", "E3"],["C4","C5"]]),           //6
-        "D3": BoardEdge("D3", ["D2", "C3", "F3"], [["C3", "E3"],["D1","D2"]]),         //7
+        "D3": BoardEdge("D3", ["D2", "C3", "E3"], [["C3", "E3"],["D1","D2"]]),         //7
         "E3": BoardEdge("E3", ["D3", "E4"], [["C3", "D3"],["E4","E5"]]),           //8
         "A4": BoardEdge("A4", ["A1", "B4", "A7"], [["B4","C4"],["A1","A7"]]),       //9
         "B4": BoardEdge("B4", ["B2", "A4", "C4", "B6"], [["A4","C4"], ["B2","B6"]]),    //10
@@ -80,12 +80,6 @@ public class GameBoard: Board {
         "D7": BoardEdge("D7", ["D6", "A7", "G7"], [ ["A7","G7"],["D5","D6"]]),      //22
         "G7": BoardEdge("G7", ["G4", "D7"], [ ["A7", "D7"],["G1","G4"]]),          //23
     ]
-
-    public let tripplesX = [["A1","D1","G1"], ["B2", "D2", "F2"], ["C3", "D3", "E3"],  ["A4","B4","C4"],
-                            ["E4","F4","G4"], ["C5","D5","E5"], ["B6","D6","F6"], ["A7", "D7","G7"]]
-
-    public let tripplesY = [["A1","A4","A7"], ["B2","B4","B6"],["C3","C4","C5"],["D1","D2","D3"],
-                            ["D5","D6","D7"], ["E3","E4","E5"], ["F2","F4","F6"],["G1","G4","G7"]]
 
     public init(){
 
@@ -117,7 +111,7 @@ public class GameBoard: Board {
     }
 
     public func isValid(position: String)->Bool{
-        guard let edge = self.edges[position] else {
+        if self.edges[position] == nil {
             return false
         }
 

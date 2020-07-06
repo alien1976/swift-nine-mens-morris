@@ -13,27 +13,27 @@ class Game{
     * help - Will display this message with useful commands and game rules
     * exit - Will exit the game
 
-    This game requires exact 2 players.
+    This game requires exactly 2 players.
     This game has been developed as a terminal app using swift language.
     To play the game you need to follow the following rules:
         * Each player has one turn after the other one
-        * Each player has nine chips at the begining of the game
+        * Each player has nine chips at the beginning of the game
         * There are two phases of the game:
             * First phase: 
-                - Each player need to set its chips on all the available positions on the board.
-                - If player form mill during this stage of the game he/she need to remove an oponent chip from the board.
+                - Each player needs to set its chips on all the available positions on the board.
+                - If a player form mill during this stage of the game he/she needs to remove an opponent chip from the board.
             * Second phase: 
-                - When all the chips are place onto the board then the players need to start moving their chips around available position on the board
-                - Chip can be moved to any available(empty) position that is a neghbour to the selected chip position.
-                - When a player move its chip and form a mill then he/she need to remove an oponent chip from the board.
-                - If some player left with just three or less chips on the board then he/she can move any chip anywhere on the available board positions.
-        * To set chip on the board you need to type the chip coordinates on the console using the following syntax:
+                - When all the chips are placed onto the board then the players need to start moving their chips around the available position on the board
+                - A chip can be moved to any available(empty) position that is a neighbor to the selected chip position.
+                - When players move its chip and form a mill then he/she need to remove an opponent chip from the board.
+                - If some player left with just three or fewer chips on the board then he/she can move any chip anywhere on the available board positions.
+        * To set a chip on the board you need to type the chip coordinates on the console using the following syntax:
           > Player1, Set chip: A1
-        * To move chip pn the board you need to type the chip coordinates that will be moved concatenated with the destination coordinates like this:
+        * To move chip on the board you need to type the chip coordinates that will be moved concatenated with the destination coordinates like this:
           > Player1, Move chip: A1A4
-        * If a mill formed from player he/she needs to remove an oponent chip with the following syntax command:
-          > Player1, Remove oponent chip: A1
-    For more info about the game and rules you can check https://en.wikipedia.org/wiki/Nine_men%27s_morris
+        * If a mill formed from player he/she needs to remove an opponent chip with the following syntax command:
+          > Player1 has set three chips in one line. Remove opponent chip with color o: A1
+    For more info about the game and rules, you can check https://en.wikipedia.org/wiki/Nine_men%27s_morris
     Press enter to continue...
     """
 
@@ -48,20 +48,46 @@ class Game{
         if gameFinished() {
             return
         }
-        self.gamePhase = GamePhase.MOVE
         commandsReader(gamePhase: secondGamePhaseCommands)
     }
 
     func commandsReader(gamePhase: (_ command:String)-> Bool){
         while let input = readLine() {
             guard input != "exit" else {
-                print("Game has ended")
+                print("Exiting game...")
+                exit(0)
                 break
             }
 
             guard input != "help" else {
                 self.gamePaused = true
                 clearAndPrintOutput(additionalOutput: self.helpString)
+                continue
+            }
+
+            if self.gamePaused && input == "" {
+                self.gamePaused = false
+                if (!finishTurn(shouldChangePlayer: false){
+                    return self.gameController.activePlayer.playerName + (self.gamePhase == GamePhase.MOVE ? ", Move chip:" : ", Set chip:")
+                    }) {return}
+                continue
+            }
+
+            if self.millFormed {
+                let removeChipRes = self.gameController.removeopponentChipOn(position: input)
+
+                if removeChipRes != "" {
+                    if (!finishTurn(shouldChangePlayer: false){
+                        "\(removeChipRes)\n\(self.gameController.activePlayer.playerName) has set three chips in one line. Remove opponent chip with color \(self.gameController.notActivePlayer.color.rawValue)! "
+                        }) {return}
+                    continue
+                }
+
+                self.millFormed = false
+
+                if !(finishTurn{
+                    return self.gameController.activePlayer.playerName + (self.gamePhase == GamePhase.MOVE ? ", Move chip:" : ", Set chip:")
+                }){return}
                 continue
             }
 
@@ -72,29 +98,13 @@ class Game{
     }
 
     func firstGamePhaseCommands(command:String) -> Bool{
-        if self.gamePaused && command == "" {
-            self.gamePaused = false
-            return finishPhaseOneTurn(shouldChangePlayer: false){
-                return self.gameController.activePlayer.playerName + ", Set chip:"
-            }
-        }
-
-        if self.millFormed && self.gameController.removeOponentChipOn(position: command){
-            self.millFormed = false
-            return finishPhaseOneTurn{
-                self.gameController.activePlayer.playerName + ", Set chip:"
-            }
-        } else if self.millFormed {
-            return finishPhaseOneTurn(shouldChangePlayer: false){
-                "You've set three chips in one line. Remove oponent chip! "
-            }
-        }
-
         //will set chip on position with parsing and validating the position
-        if !parse(command:command){
-            return finishPhaseOneTurn(shouldChangePlayer: false){
-                "Unable to set chip on \(command)\n"+self.gameController.activePlayer.playerName + ", Set chip:"
-            }
+        let parseRes = parse(command: command)
+
+        if parseRes != "" {
+            return finishTurn(shouldChangePlayer: false) {
+                "\(parseRes)\n"+self.gameController.activePlayer.playerName + ", Move chip:"
+            } 
         }
 
         self.gameController.decreaseActivePlayerChips()
@@ -102,40 +112,24 @@ class Game{
         if self.gameController.isMillFormed(position: command, color: self.gameController.activePlayer.color){
             self.millFormed = true
 
-            return finishPhaseOneTurn(shouldChangePlayer: false){
-                "You've set three chips in one line. Remove oponent chip: "
+            return finishTurn(shouldChangePlayer: false){
+                "\(self.gameController.activePlayer.playerName) has set three chips in one line. Remove opponent chip with color \(self.gameController.notActivePlayer.color.rawValue): "
             }
         }
 
-        return finishPhaseOneTurn {
+        return finishTurn {
             self.gameController.activePlayer.playerName + ", Set chip:"
         }
     }
 
     func secondGamePhaseCommands(command:String) -> Bool{
-        if self.gamePaused && command == "" {
-            self.gamePaused = false
-            return finishPhaseTwoTurn(shouldChangePlayer: false){
-                return self.gameController.activePlayer.playerName + ", Move chip:"
-            }
-        }
-
-        if self.millFormed && self.gameController.removeOponentChipOn(position: command){
-            self.millFormed = false
-            return finishPhaseTwoTurn{
-                self.gameController.activePlayer.playerName + ", Move chip:"
-            }
-        } else if self.millFormed {
-            return finishPhaseTwoTurn(shouldChangePlayer: false){
-                "You've set three chips in one line. Remove oponent chip! "
-            }
-        }
-
         //will set chip on position with parsing and validating the position
-        if !parse(command:command){
-            return finishPhaseTwoTurn(shouldChangePlayer: false){
-                "Unable to move chip on \(command)\n"+self.gameController.activePlayer.playerName + ", Move chip:"
-            }
+        let parseRes = parse(command: command)
+
+        if parseRes != "" {
+            return finishTurn(shouldChangePlayer: false) {
+                "\(parseRes)\n"+self.gameController.activePlayer.playerName + ", Move chip:"
+            } 
         }
 
         let to =  String(command.suffix(2))
@@ -143,22 +137,29 @@ class Game{
         if self.gameController.isMillFormed(position: to, color: self.gameController.activePlayer.color){
             self.millFormed = true
 
-            return finishPhaseTwoTurn(shouldChangePlayer: false){
-                "You've set three chips in one line. Remove oponent chip: "
+            return finishTurn(shouldChangePlayer: false){
+                "\(self.gameController.activePlayer.playerName) has set three chips in one line. Remove opponent chip with color \(self.gameController.notActivePlayer.color.rawValue): "
             }
         }
 
-        return finishPhaseTwoTurn {
+        return finishTurn {
             self.gameController.activePlayer.playerName + ", Move chip:"
         }
     }
 
-    func finishPhaseOneTurn(shouldChangePlayer:Bool = true, infoMessage: () -> String = {""}) ->Bool{
+    func finishTurn(shouldChangePlayer:Bool = true, infoMessage: () -> String = {""}) -> Bool{
         if shouldChangePlayer {self.gameController.changeActivePlayer()}
+
+        if self.gamePhase == GamePhase.ADD && self.gameController.areAllChipsSet()  {
+            self.gamePhase = GamePhase.MOVE
+            clearAndPrintOutput(additionalOutput: infoMessage())
+
+            return false
+        }
 
         clearAndPrintOutput(additionalOutput: infoMessage())
 
-        if self.gameController.areAllChipsSet() {
+        if self.gamePhase == GamePhase.MOVE && gameFinished() {
             return false
         }
 
@@ -179,19 +180,7 @@ class Game{
         return false
     }
 
-    func finishPhaseTwoTurn(shouldChangePlayer:Bool = true, infoMessage: () -> String = {""}) ->Bool{
-        if shouldChangePlayer {self.gameController.changeActivePlayer()}
-
-        if gameFinished() {
-            return false
-        }
-
-        clearAndPrintOutput(additionalOutput: infoMessage())
-
-        return true
-    }
-
-    func parse(command: String)->Bool{
+    func parse(command: String) -> String{
         switch self.gamePhase{
         case .ADD:
             return parsePhaseOne(command: command)
@@ -200,32 +189,32 @@ class Game{
         }
     }
 
-    func parsePhaseOne(command: String) -> Bool{
+    func parsePhaseOne(command: String) -> String{
         if !self.gameController.isValid(position:command){
-            return false
+            return "Warning: Invalid position \(command) passed!"
         }
 
         if !self.gameController.setChipOn(position:command){
-            return false
+            return "Warning: Unable to set chip on position \(command). The field is not empty!"
         }
 
-        return true
+        return ""
     }
 
-    func parsePhaseTwoCommand(command: String) -> Bool{
-        if command.count != 4 {return false}
+    func parsePhaseTwoCommand(command: String) -> String{
+        if command.count != 4 {return "Warning: Command must be exact 4 characters like 'A1A4'!"}
         let from = String(command.prefix(2))
         let to =  String(command.suffix(2))
 
-        if !self.gameController.isValid(position:from) || !self.gameController.isValid(position:to){
-            return false
+        if !self.gameController.isValid(position:from){
+            return "Warning: The position \(from) is not valid"
         }
 
-        if !self.gameController.moveChip(from: from, to: to, fly: self.gameController.activePlayer.playerChipsOnBoard == 3){
-            return false
+        if !self.gameController.isValid(position:to){
+            return "Warning: The position \(to) is not valid"
         }
 
-        return true
+        return self.gameController.moveChip(from: from, to: to, fly: self.gameController.activePlayer.playerChipsOnBoard == 3)
     }
 
     func clearAndPrintOutput(additionalOutput:String  = ""){

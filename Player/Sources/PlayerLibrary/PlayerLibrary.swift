@@ -89,22 +89,23 @@ public class Player: PlayerData {
         self.playerChipsOnBoard -= 1
     }
 
-    public func removeChip(position: String){
+    public func removeChip(position: String)->String{
         guard let chipIndex = (self.chips.firstIndex{currentChip in currentChip.position == position}) else {
-            print("Warning: Chip with position \(position) does not exists in \(self.playerName)'s chips!")
-            return
+            return "Warning: Chip with position \(position) does not exists in \(self.playerName)'s chips!"
         }
 
         self.chips.remove(at: chipIndex)
         decreaseChipsCount()
+
+        return ""
     }
 
-    public func moveChip(from: String, to: String){
+    public func moveChip(from: String, to: String) -> String {
         guard let chipIndex = (self.chips.firstIndex{currentChip in currentChip.position == from}) else {
-            print("Warning: Chip with position \(from) does not exists in \(self.playerName)'s chips!")
-            return
+            return "Warning: Chip with position \(from) does not exists in \(self.playerName)'s chips!"
         }
 
         self.chips[chipIndex].position = to
+        return ""
     }
 }

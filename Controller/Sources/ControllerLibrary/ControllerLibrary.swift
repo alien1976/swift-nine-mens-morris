@@ -25,13 +25,13 @@ public class GameController {
         self.notActivePlayer = tempPlayer
     }
 
-    public func setChipOn(position: String)->Bool{
+    public func setChipOn(position: String) -> Bool{
         if !self.Board.isFieldEmpty(position: position) {
-            print("Warning: This position is not empty! Please try with another one!")
             return false
         }
 
         let newChip = PlayerChip(position, self.activePlayer.color)
+
         if let edge = self.Board.edges[position] {
             edge.setPlayer(chip: newChip)
             self.activePlayer.addChip(chip: newChip)
@@ -41,72 +41,70 @@ public class GameController {
         return false
     }
 
-    public func moveChip(from:String, to: String, fly:Bool = false)->Bool{
+    public func moveChip(from:String, to: String, fly:Bool = false)->String{
         guard let edge = self.Board.edges[from] else {
-            print("Warning: From position \(from) is invalid!")
-            return false
+            return "Warning: From position \(from) is invalid!"
         }
 
-        guard let edgeChip = edge.chip else {
-            print("Warning: There is no chip for moving on position - \(from)!")
-            return false
+        guard var edgeChip = edge.chip else {
+            return "Warning: There is no chip for moving on position - \(from)!"
         }
 
         if edgeChip.color != self.activePlayer.color {
-            print("Warning: You can't move chip that is not yours!")
-            return false
+            return "Warning: You can't move chip that is not yours!"
         }
 
         guard let destEdge = self.Board.edges[to] else {
-            print("Warning: To position \(from) is invalid!")
-            return false
+            return "Warning: To position \(from) is invalid!"
         }
 
-        if !fly && !edge.neighbours.contains(to){
-            print("Warning: From position \(from) does not have destination position \(to) as a neighbour!")
-            return false
+        if !fly && (!edge.edgeLineNeighbours.contains{tripple in 
+            return tripple.contains(to)
+            }) {
+            return "Warning: From position \(from) does not have destination position \(to) as a neighbor!"
         }
 
         if !destEdge.isEmpty {
-            print("Warning: To position \(to) is not empty!")
-            return false
+            return "Warning: To position \(to) is not empty!"
         }
 
-        destEdge.setPlayer(chip: edgeChip)
-        edge.removePlayer(chip: edgeChip)
-        self.activePlayer.moveChip(from: from, to: to)
+        let moveChipRes = self.activePlayer.moveChip(from: from, to: to)
+        if moveChipRes != "" {return moveChipRes}
 
-        return true
+        edgeChip.position = to
+        edge.removePlayer()
+        destEdge.setPlayer(chip: edgeChip)
+
+        return ""
     }
 
-    public func removeOponentChipOn(position:String)->Bool{
+    public func removeopponentChipOn(position:String)->String{
         guard let edge = self.Board.edges[position] else {
-            print("Warning: Oponent chip position \(position) is invalid!")
-            return false
+            return "Warning: opponent chip position \(position) is invalid!"
         }
 
         guard let edgeChip = edge.chip else {
-            print("Warning: There is no oponent chip on position - \(position)!")
-            return false
+            return "Warning: There is no opponent chip on position - \(position)!"
         }
 
         if (edgeChip.color == activePlayer.color) {
-            print("Warning: You can't remove your own chip!")
-            return false
+            return "Warning: You can't remove your own chip!"
         }
 
-        if !isRemoveOponentChipValid(position: position) {
-            print("Warning: You can't remove oponent chip that is a part of a formed mill")
-            return false
+        if !isRemoveopponentChipValid(position: position) {
+            return "Warning: You can't remove opponent chip that is a part of a formed mill"
         }
 
-        edge.removePlayer(chip: edgeChip)
-        self.notActivePlayer.removeChip(position: edgeChip.position)
-        return true;
+        let removeChipRes = self.notActivePlayer.removeChip(position: edgeChip.position)
+        if removeChipRes != "" {return removeChipRes}
+
+        edge.removePlayer() 
+
+        return ""
     }
 
-    public func isRemoveOponentChipValid(position: String) -> Bool{
-        //checks if there chips that are not forming mill on the oponent player side
+    public func isRemoveopponentChipValid(position: String) -> Bool{
+        //checks if there chips that are not forming mill on the opponent player side
         //if there are none then the active player can remove a chip that form a mill
         if(!isNotMillFormed(playerChips: self.notActivePlayer.chips, color: self.notActivePlayer.color) ){
             return true
@@ -220,8 +218,8 @@ public class GameController {
                 return false
             }
 
-            for neighbour in edge.neighbours{
-                guard let neighbourEdge = self.Board.edges[neighbour] else {
+            for neighbor in edge.neighbors{
+                guard let neighbourEdge = self.Board.edges[neighbor] else {
                     continue
                 }
 
